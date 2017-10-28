@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Insulin Pump</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="volume">Volume</string>
+    <string name="title_activity_manual_mode">ManualModeActivity</string>
+    <string name="title_activity_dosages">Dosages</string>
 </resources>
