@@ -3,6 +3,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="mossy.insulinpump.Home">
     <item
+        android:id="@+id/action_home"
+        android:orderInCategory="100"
+        android:title="@string/action_home"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_manual_mode"
+        android:orderInCategory="100"
+        android:title="@string/action_manual_mode"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_dosage"
+        android:orderInCategory="100"
+        android:title="@string/action_dosages"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
         android:title="@string/action_settings"

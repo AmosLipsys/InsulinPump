@@ -9,34 +9,19 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Switch;
 
-public class Settings extends AppCompatActivity {
-    Switch vibrate_on_alert_switch;
-    Switch vibrate_on_notification_switch;
-
+public class ManualMode extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
+        setContentView(R.layout.activity_manual_mode);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        vibrate_on_alert_switch = (Switch) findViewById(R.id.vibrate_on_alert_switch);
-        vibrate_on_alert_switch.setOnClickListener(new View.OnClickListener(){
 
-        @Override
-        public void onClick(View view){
-
-            vibrate_on_alert_switch.setTextOn("On");
-            vibrate_on_alert_switch.setTextOff("Off");
-
-        }
-    });
     }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -54,23 +39,19 @@ public class Settings extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         switch (id){
             case R.id.action_home:
-                startActivity(new Intent(Settings.this,Home.class));
+                startActivity(new Intent(ManualMode.this,Home.class));
                 break;
             case R.id.action_dosage:
-                startActivity(new Intent(Settings.this,Dosages.class));
+                startActivity(new Intent(ManualMode.this,Dosages.class));
                 break;
             case R.id.action_manual_mode:
-                startActivity(new Intent(Settings.this,ManualMode.class));
+                startActivity(new Intent(ManualMode.this,ManualMode.class));
                 break;
             case R.id.action_settings:
-                startActivity(new Intent(Settings.this,Settings.class));
+                startActivity(new Intent(ManualMode.this,Settings.class));
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
-
-
-
-
 
 }

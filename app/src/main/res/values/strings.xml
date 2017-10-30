@@ -3,6 +3,13 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_settings">Settings</string>
     <string name="volume">Volume</string>
-    <string name="title_activity_manual_mode">ManualModeActivity</string>
+    <string name="title_activity_manual_mode">Manual Mode</string>
     <string name="title_activity_dosages">Dosages</string>
+    <string name="action_manual_mode">Manual Mode</string>
+    <string name="action_dosages">Dosages</string>
+    <string name="action_home">Home</string>
+    <string name="home_graph_title">Blood Glucose Sugar Readings</string>
+
+    <string name="create_insulin_log_table">CREATE TABLE %1$s (_id INTEGER PRIMARY KEY, %2$s LONG, %3$s INTEGER)</string>
+    <string name="delete_table">DROP TABLE IF EXISTS %1$s</string>
 </resources>

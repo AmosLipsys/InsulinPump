@@ -29,13 +29,25 @@
                 android:value="mossy.insulinpump.Home" />
         </activity>
         <activity
-            android:name=".ManualModeActivity"
+            android:name=".ManualMode"
             android:label="@string/title_activity_manual_mode"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="mossy.insulinpump.Home" />
+        </activity>
         <activity
             android:name=".Dosages"
             android:label="@string/title_activity_dosages"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar">
+                <meta-data
+                    android:name="android.support.PARENT_ACTIVITY"
+                    android:value="mossy.insulinpump.Home" />
+        </activity>
+
+
+
+        <service android:name=".InsulinPumpService" android:exported="true"/>
     </application>
 
 </manifest>
