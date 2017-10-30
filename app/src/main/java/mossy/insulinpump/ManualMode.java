@@ -9,8 +9,20 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.NumberPicker;
+import android.widget.Switch;
+
+import com.jjoe64.graphview.GraphView;
 
 public class ManualMode extends AppCompatActivity {
+
+
+    // Initialise buttons and edits from layout
+    private Button manual_inject_button;
+    private EditText single_dosage_picker;
+    private Switch manual_mode_swith;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,7 +32,19 @@ public class ManualMode extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+      // Initialise call buttons and values
+       manual_inject_button = (Button) findViewById(R.id.manual_inject_button);
+       single_dosage_picker = (EditText) findViewById(R.id.single_dosage_picker);
+        manual_mode_swith = (Switch) findViewById(R.id.manual_mode_switch);
 
+    // Set initialize the inject button when manual mode is switched on
+
+        manual_mode_swith.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                manual_inject_button.setEnabled(true);
+
+            }
+        });
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

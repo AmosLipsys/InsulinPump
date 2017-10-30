@@ -79,7 +79,6 @@ public class Home extends AppCompatActivity {
         setSupportActionBar(toolbar);
         serviceIntent=new Intent(getApplicationContext(),InsulinPumpService.class);
         startService(serviceIntent);
-
         mContext=getApplicationContext();
 
         graphView = (GraphView) findViewById(R.id.graph);
@@ -89,6 +88,7 @@ public class Home extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.list_view);
 
 
+        //graph
         mSeries2 = new LineGraphSeries<>();
         graphView.addSeries(mSeries2);
         graphView.getViewport().setXAxisBoundsManual(true);
@@ -98,16 +98,18 @@ public class Home extends AppCompatActivity {
         graphView.getViewport().setMinY(300);
         graphView.getViewport().setYAxisBoundsManual(true);
         graphView.getViewport().setXAxisBoundsManual(true);
+
+        //database
         insulin_log_DAO = new InsulinLogDAOHelper(this);
         glucose_log_DAO = new GlucoseLogDAOHelper(this);
 
+        // Set code for buttons
         button_blood_glucose_levels.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 want_insulin_log = false;
                 populate_list_view();
             }
         });
-
         button_inject_insulin.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 want_insulin_log = true;
@@ -115,6 +117,7 @@ public class Home extends AppCompatActivity {
             }
         });
 
+        // Service is simulating the person
         serviceIntent=new Intent();
         serviceIntent.setComponent(new ComponentName("mossy.insulinpump","mossy.insulinpump.InsulinPumpService"));
         bindService(serviceIntent, randomNumberServiceConnection, BIND_AUTO_CREATE);
@@ -155,7 +158,10 @@ public class Home extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+        // Creates list on start up
         populate_list_view();
+
+        //Graph
         mTimer2 = new Runnable() {
             @Override
             public void run() {
@@ -184,29 +190,37 @@ public class Home extends AppCompatActivity {
 
                     glucose_level =msg.arg1;
                     status_text_view.setText("Glucose Level: "+ glucose_level);
+
+                    Log.i(TAG,"New Data Point Taken:" + glucose_level );
+
+                    //Data base
+                    database_glucose = glucose_log_DAO.getWritableDatabase();
+
+                    //Graph
                     graph2LastXValue += 1d;
                     mSeries2.appendData(new DataPoint(graph2LastXValue, glucose_level), true, 10);
-                    Log.i(TAG,"New Data Point Taken:" + glucose_level );
-                    if(glucose_level > max_allowed_glucose_level) {
-                        deliver_insulin();
-                    }
-                    database_glucose = glucose_log_DAO.getWritableDatabase();
                     contentValues = new ContentValues();
                     contentValues.put("time", System.currentTimeMillis());
                     contentValues.put("amount", glucose_level);
                     database_glucose.insert("glucose_log", null, contentValues);
 
+                    // Automatic insulin mode
+                    if(glucose_level > max_allowed_glucose_level) {
+                        deliver_insulin();
+                    }
                     break;
                 // Message saying insulin is delivered
                 case DELIVER_INSULIN_FLAG:
 
                     Log.i(TAG,"Took Insulin");
+                    // Database
                     database_insulin = insulin_log_DAO.getWritableDatabase();
                     contentValues = new ContentValues();
                     contentValues.put("time", System.currentTimeMillis());
                     contentValues.put("amount", 2);
                     database_insulin.insert("insulin_log", null, contentValues);
 
+                    // Updates both list views
                     populate_list_view();
                     break;
                 default:
@@ -232,6 +246,7 @@ public class Home extends AppCompatActivity {
     };
 
 
+    // Send messages to Service
     private void fetch_glucose_level(){
 
         if (mIsBound) {
@@ -246,7 +261,6 @@ public class Home extends AppCompatActivity {
             Toast.makeText(mContext,"Service Unbound, can't get random number",Toast.LENGTH_SHORT).show();
         }
     }
-
     private void deliver_insulin(){
         if (mIsBound) {
             Message requestMessage=Message.obtain(null, DELIVER_INSULIN_FLAG);
@@ -270,19 +284,17 @@ public class Home extends AppCompatActivity {
     }
 
     void populate_list_view(){
-        String query;
         String format_text;
         Cursor cursor;
+        // Display insulin or glucose logs
         try {
         if(want_insulin_log){
-            query = "select * from insulin_log";
             format_text = "Insulin Dose: %s\nDate: %s";
-            cursor= insulin_log_DAO.getReadableDatabase().rawQuery(query, null);
+            cursor= insulin_log_DAO.getReadableDatabase().rawQuery("select * from insulin_log", null);
         }
         else {
-            query = "select * from glucose_log";
             format_text = "Glucose Level: %s\nDate: %s";
-            cursor = glucose_log_DAO.getReadableDatabase().rawQuery(query, null);
+            cursor = glucose_log_DAO.getReadableDatabase().rawQuery("select * from glucose_log", null);
         }
 
 
