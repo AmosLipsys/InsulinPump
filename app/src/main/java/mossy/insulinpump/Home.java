@@ -67,7 +67,6 @@ public class Home extends AppCompatActivity {
     private GlucoseLogDAOHelper glucose_log_DAO;
     SQLiteDatabase database_insulin;
     SQLiteDatabase database_glucose;
-
     ContentValues contentValues;
 
 

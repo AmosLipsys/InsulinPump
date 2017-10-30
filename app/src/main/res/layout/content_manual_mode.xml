@@ -32,7 +32,8 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/single_dosage_picker"
         app:layout_constraintTop_toBottomOf="@+id/manual_mode_text"
-        android:layout_marginLeft="16dp" />
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp" />
 
     <TextView
         android:id="@+id/manual_mode_text"
@@ -67,40 +68,44 @@
 
     <TextView
         android:id="@+id/pop_up_warning"
-        android:layout_width="336dp"
-        android:layout_height="117dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="32dp"
         android:text="WARNING\nAre you sure you with to inject insulin? Insulin overdose can occur please consult medical advice before using this feature"
         android:textColor="@color/colorLabel"
         android:textSize="18sp"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintVertical_bias="0.089"
-        app:layout_constraintLeft_toRightOf="@+id/imageView"
-        app:layout_constraintTop_toBottomOf="@+id/manual_inject_button" />
+        app:layout_constraintLeft_toRightOf="@+id/warning_image"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/manual_inject_button"
+        app:layout_constraintVertical_bias="0.064"
+        android:layout_marginRight="8dp"
+        android:layout_marginLeft="8dp" />
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/warning_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@android:color/holo_orange_dark"
-        app:srcCompat="@android:drawable/stat_notify_error"
         android:layout_marginTop="8dp"
-        android:layout_marginLeft="7dp"
+        android:background="@android:color/holo_orange_dark"
+        android:visibility="invisible"
         app:layout_constraintLeft_toLeftOf="parent"
-        android:layout_marginStart="8dp"
-        app:layout_constraintTop_toTopOf="@+id/pop_up_warning" />
+        app:layout_constraintTop_toTopOf="@+id/pop_up_warning"
+        app:srcCompat="@android:drawable/stat_notify_error"
+        app:layout_constraintRight_toLeftOf="@+id/pop_up_warning" />
 
     <EditText
+        android:inputType="number"
         android:id="@+id/single_dosage_picker"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:layout_marginRight="16dp"
         app:layout_constraintLeft_toRightOf="@+id/single_dosage_text"
         app:layout_constraintRight_toRightOf="parent"
-        tools:layout_editor_absoluteY="240dp" />
+        android:layout_marginEnd="16dp"
+        app:layout_constraintBaseline_toBaselineOf="@+id/single_dosage_text" />
 
     <Button
         android:id="@+id/manual_inject_button"
@@ -128,5 +133,29 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="@+id/warning"
         android:layout_marginStart="16dp" />
+
+    <Button
+        android:id="@+id/back_butt"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Cancel"
+        android:visibility="invisible"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/ok_butt"
+        app:layout_constraintTop_toBottomOf="@+id/pop_up_warning"
+        android:enabled="false"
+        />
+
+    <Button
+        android:id="@+id/ok_butt"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Okay"
+        android:visibility="invisible"
+        app:layout_constraintBaseline_toBaselineOf="@+id/back_butt"
+        app:layout_constraintLeft_toRightOf="@+id/back_butt"
+        app:layout_constraintRight_toRightOf="parent"
+        android:enabled="false"/>
 
 </android.support.constraint.ConstraintLayout>
