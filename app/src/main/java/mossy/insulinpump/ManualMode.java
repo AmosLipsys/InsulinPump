@@ -169,6 +169,8 @@ public class ManualMode extends AppCompatActivity {
     private void make_toast(CharSequence message){
         Context context = getApplicationContext();
         Toast toast = Toast.makeText(context, message, Toast.LENGTH_LONG);
+        TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
+        v.setTextColor(android.R.color.holo_red_light);
         toast.show();
     }
 
