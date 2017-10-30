@@ -1,5 +1,6 @@
 package mossy.insulinpump;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -7,12 +8,16 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class Dosages extends AppCompatActivity {
     private SharedPreferences global_preferences;
@@ -34,9 +39,9 @@ public class Dosages extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         // Load Shared Preferences
         global_preferences = getSharedPreferences("global_preferences", MODE_PRIVATE);
-        min_single_dose =global_preferences.getInt("min_single_dose", 2);
-        max_single_dose = global_preferences.getInt("max_single_dose", 5);
-        max_daily_dose = global_preferences.getInt("max_daily_dose", 25);
+        min_single_dose = global_preferences.getInt("min_single_dose", 1);
+        max_single_dose = global_preferences.getInt("max_single_dose", 3);
+        max_daily_dose = global_preferences.getInt("max_daily_dose", 30);
 
         min_single_dose_text_view = (EditText) findViewById(R.id.minimum_single_dosage_picker);
         max_single_dose_text_view = (EditText) findViewById(R.id.maximum_single_dosage_picker);
@@ -58,8 +63,9 @@ public class Dosages extends AppCompatActivity {
             public void onClick(View v) {
                 min_single_dose = Integer.valueOf(min_single_dose_text_view.getText().toString());
                 max_single_dose = Integer.valueOf(max_single_dose_text_view.getText().toString());;
-                max_daily_dose = Integer.valueOf(max_single_dose_text_view.getText().toString());;
+                max_daily_dose = Integer.valueOf(max_daily_dose_text_view.getText().toString());;
                 update_edit_text_fields();
+                make_toast("Updated Dosages \nConsult Medical advice when updating\n dosages");
             }
         });
 
@@ -88,6 +94,7 @@ public class Dosages extends AppCompatActivity {
             }
         });
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -146,6 +153,22 @@ public class Dosages extends AppCompatActivity {
                 .putInt("max_daily_dose", max_daily_dose)
                 .apply();
     }
+
+    private void make_toast(CharSequence message) {
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.custom_toast,
+                (ViewGroup) findViewById(R.id.custom_toast_layout_id));
+        TextView text = (TextView) layout.findViewById(R.id.text);
+        text.setText(message);
+        // Toast...
+        Toast toast = new Toast(getApplicationContext());
+        toast.setGravity(Gravity.BOTTOM, 0, 60);
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(layout);
+        toast.show();
+    }
+
+
 
 
 }

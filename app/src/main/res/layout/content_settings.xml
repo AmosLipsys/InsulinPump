@@ -31,7 +31,7 @@
         android:textColor="@color/colorLabel"
         android:textSize="24sp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/vibrate_on_notification"
+        app:layout_constraintRight_toLeftOf="@+id/vibrate_on_notification_switch"
         app:layout_constraintTop_toBottomOf="@+id/volume_seek_bar"
         android:layout_marginLeft="16dp"
         android:layout_marginStart="16dp" />
@@ -62,7 +62,7 @@
         android:layout_marginRight="8dp" />
 
     <Switch
-        android:id="@+id/vibrate_on_notification"
+        android:id="@+id/vibrate_on_notification_switch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"

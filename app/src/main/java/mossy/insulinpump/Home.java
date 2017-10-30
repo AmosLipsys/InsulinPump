@@ -5,20 +5,30 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.media.MediaPlayer;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListAdapter;
@@ -30,11 +40,11 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
-import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Random;
+
+import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
 public class Home extends AppCompatActivity {
 
@@ -60,7 +70,7 @@ public class Home extends AppCompatActivity {
 
     private final Handler mHandler = new Handler();
     private Runnable mTimer2;
-    private LineGraphSeries<DataPoint> mSeries2;
+    private LineGraphSeries<DataPoint> blood_glucose_serires_data;
     private double graph2LastXValue = 5d;
 
     private InsulinLogDAOHelper insulin_log_DAO;
@@ -68,7 +78,13 @@ public class Home extends AppCompatActivity {
     SQLiteDatabase database_insulin;
     SQLiteDatabase database_glucose;
     ContentValues contentValues;
+    int data_point_1, data_point_2, data_point_3, volume;
 
+    private SharedPreferences global_preferences;
+    boolean manual_mode_enabled;
+    private boolean vibrate_on_alert,vibrate_on_notification;
+
+    int min_single_dose, max_single_dose, max_daily_dose, dose_total;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,16 +96,28 @@ public class Home extends AppCompatActivity {
         startService(serviceIntent);
         mContext=getApplicationContext();
 
+
         graphView = (GraphView) findViewById(R.id.graph);
         status_text_view = (TextView) findViewById(R.id.status_text_view);
         button_inject_insulin =(Button)findViewById(R.id.insulin_butt);
         button_blood_glucose_levels =(Button)findViewById(R.id.blood_glucose);
         listView = (ListView) findViewById(R.id.list_view);
 
+        global_preferences = getSharedPreferences("global_preferences", MODE_PRIVATE);
+        manual_mode_enabled = global_preferences.getBoolean("manual_mode_enabled", false);
+        min_single_dose = global_preferences.getInt("min_single_dose", 1);
+        max_single_dose = global_preferences.getInt("max_single_dose", 3);
+        max_daily_dose = global_preferences.getInt("max_daily_dose", 25);
+        dose_total = global_preferences.getInt("dose_total", 25);
+        vibrate_on_alert = global_preferences.getBoolean("vibrate_on_alert", true);
+        vibrate_on_notification = global_preferences.getBoolean("vibrate_on_notification", true);
+        volume = global_preferences.getInt("volume", 0);
+
+
 
         //graph
-        mSeries2 = new LineGraphSeries<>();
-        graphView.addSeries(mSeries2);
+        blood_glucose_serires_data = new LineGraphSeries<>();
+        graphView.addSeries(blood_glucose_serires_data);
         graphView.getViewport().setXAxisBoundsManual(true);
         graphView.getViewport().setMinX(0);
         graphView.getViewport().setMaxX(7);
@@ -120,6 +148,10 @@ public class Home extends AppCompatActivity {
         serviceIntent=new Intent();
         serviceIntent.setComponent(new ComponentName("mossy.insulinpump","mossy.insulinpump.InsulinPumpService"));
         bindService(serviceIntent, randomNumberServiceConnection, BIND_AUTO_CREATE);
+
+
+
+
     }
 
     @Override
@@ -169,6 +201,26 @@ public class Home extends AppCompatActivity {
             }
         };
         mHandler.postDelayed(mTimer2, 1000);
+
+        // Populate Graph
+        Cursor cursor;
+        try {
+            cursor = glucose_log_DAO.getReadableDatabase().rawQuery("select * from glucose_log", null);
+
+            cursor.moveToLast();
+            while(cursor.moveToNext()){
+                graph2LastXValue += 1d;
+                blood_glucose_serires_data.appendData(new DataPoint(graph2LastXValue, cursor.getInt(2)), true, 10);
+            }
+            cursor.close();
+
+
+        }catch (Exception e){
+
+        }
+
+
+
     }
 
     @Override
@@ -197,27 +249,98 @@ public class Home extends AppCompatActivity {
 
                     //Graph
                     graph2LastXValue += 1d;
-                    mSeries2.appendData(new DataPoint(graph2LastXValue, glucose_level), true, 10);
+                    blood_glucose_serires_data.appendData(new DataPoint(graph2LastXValue, glucose_level), true, 10);
+                    data_point_1 = global_preferences.getInt("data_point_1", 0);
+                    data_point_2 = global_preferences.getInt("data_point_2", 0);
+                    data_point_3 = global_preferences.getInt("data_point_3", 0);
+
                     contentValues = new ContentValues();
                     contentValues.put("time", System.currentTimeMillis());
                     contentValues.put("amount", glucose_level);
                     database_glucose.insert("glucose_log", null, contentValues);
+                    database_glucose.close();
 
-                    // Automatic insulin mode
-                    if(glucose_level > max_allowed_glucose_level) {
-                        deliver_insulin();
+                    data_point_3 = data_point_2;
+                    data_point_2 = data_point_1;
+                    data_point_1 = glucose_level;
+
+                    global_preferences.edit()
+                            .putInt("data_point_1", data_point_1)
+                            .putInt("data_point_2", data_point_2)
+                            .putInt("data_point_3", data_point_3)
+                            .apply();
+
+                            //*** Automatic insulin mode ***\\
+                            // - Manual Mode Disabled
+                            // - Glucose level is above max range
+                            // - Last 3 Data points in a row
+                            if(!manual_mode_enabled && glucose_level > max_allowed_glucose_level && data_point_1 > data_point_2 && data_point_2 > data_point_3) {
+                                deliver_insulin();
+                            }
+
+                    String warning="";
+
+                    if(manual_mode_enabled){
+                        warning += "\nManual Mode Enabled";
                     }
+                    if(glucose_level > max_allowed_glucose_level){
+                        warning += "\nGlucose Levels Too High ";
+                    }
+                    String status_message="";
+                    if(warning.isEmpty()){
+                        status_message = "Status: Nothing to Report";
+                        status_text_view.setBackgroundColor(Color.WHITE);
+                    }
+                    else {
+                        if(vibrate_on_notification){
+                            Vibrator vibrator = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
+                            vibrator.vibrate(100);
+                        }
+                        status_message = "Status: Warning!" + warning;
+                        status_text_view.setBackgroundColor(Color.RED);
+                    }
+                    status_text_view.setText(status_message);
+
                     break;
                 // Message saying insulin is delivered
                 case DELIVER_INSULIN_FLAG:
 
                     Log.i(TAG,"Took Insulin");
+                    make_toast(String.format(Locale.ENGLISH,"Warning: \nInsulin Successfully Administered\nDose: %d",2));
+                    if(vibrate_on_alert){
+                        Vibrator vibrator = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
+                        vibrator.vibrate(100);
+                    }
+
+                    if(volume!=0){
+                        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                        Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+                        r.play();
+                    }
+
                     // Database
-                    database_insulin = insulin_log_DAO.getWritableDatabase();
                     contentValues = new ContentValues();
+                    int dose;
+                    if(max_daily_dose > max_single_dose + dose_total){
+                        dose = max_single_dose;
+                    }
+                    else if(max_daily_dose > min_single_dose + dose_total){
+                        dose = min_single_dose;
+                    }
+                    else {
+                        dose = 0;
+                    }
+
+                    database_insulin = insulin_log_DAO.getWritableDatabase();
                     contentValues.put("time", System.currentTimeMillis());
-                    contentValues.put("amount", 2);
+                    contentValues.put("amount", dose);
                     database_insulin.insert("insulin_log", null, contentValues);
+
+                    database_insulin = insulin_log_DAO.getReadableDatabase();
+                    String yesterday = Long.toString(System.currentTimeMillis()-86400000);
+                    Cursor c = database_insulin.rawQuery("SELECT SUM(amount) FROM insulin_log WHERE time > " + yesterday, null);
+                    c.moveToFirst();
+                    dose_total = c.getInt(0);
 
                     // Updates both list views
                     populate_list_view();
@@ -323,4 +446,26 @@ public class Home extends AppCompatActivity {
 
 
     }
+
+    private void make_toast(CharSequence message){
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.custom_toast,
+                (ViewGroup) findViewById(R.id.custom_toast_layout_id));
+        TextView text = (TextView) layout.findViewById(R.id.text);
+        text.setText(message);
+        // Toast...
+        Toast toast = new Toast(getApplicationContext());
+        toast.setGravity(Gravity.BOTTOM, 0,60);
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(layout);
+        toast.show();
+
+//        Context context = getApplicationContext();
+//        Toast toast = Toast.makeText(context, message, Toast.LENGTH_LONG);
+//        TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
+//        v.setTextColor(Color.RED);
+//
+//        toast.show();
+    }
+
 }

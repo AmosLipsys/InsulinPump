@@ -23,7 +23,7 @@ public class InsulinPumpService extends Service {
     private boolean mIsRandomGeneratorOn;
 
     private int min_increase =-2;
-    private int max_increase =50;
+    private int max_increase =10;
     private int min_blood_glucose =250;
     private int max_blood_glucose =790;
 

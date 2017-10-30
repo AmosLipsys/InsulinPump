@@ -5,14 +5,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -54,30 +59,31 @@ public class ManualMode extends AppCompatActivity {
         back_butt = (Button) findViewById(R.id.back_butt);
         warning_icon = (ImageView) findViewById(R.id.warning_image);
         pop_up_warning = (TextView) findViewById(R.id.pop_up_warning);
+
         global_preferences = getSharedPreferences("global_preferences", MODE_PRIVATE);
         manual_mode_enabled = global_preferences.getBoolean("manual_mode_enabled", false);
         single_dose_amount = global_preferences.getInt("single_dosage_amount", 1);
 
         manual_mode_switch.setChecked(manual_mode_enabled);
+        manual_inject_button.setEnabled(manual_mode_enabled);
+
         single_dosage_picker.setText(String.format(Locale.ENGLISH,"%d", single_dose_amount));
 
         insulin_log_DAO = new InsulinLogDAOHelper(this);
 
-
-
     // Set initialize the inject button when manual mode is switched on
 
-        manual_mode_switch.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if(manual_mode_switch.isChecked()){
-                    manual_inject_button.setEnabled(true);
+        manual_mode_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                manual_mode_enabled = isChecked;
+                manual_inject_button.setEnabled(isChecked);
+                if(!isChecked){
+                    toggle_warning(isChecked);
                 }
-                else {
-                    manual_inject_button.setEnabled(false);
-                    toggle_warning(false);
-                }
+
             }
         });
+
         manual_inject_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 toggle_warning(true);
@@ -167,11 +173,34 @@ public class ManualMode extends AppCompatActivity {
     }
 
     private void make_toast(CharSequence message){
-        Context context = getApplicationContext();
-        Toast toast = Toast.makeText(context, message, Toast.LENGTH_LONG);
-        TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
-        v.setTextColor(android.R.color.holo_red_light);
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.custom_toast,
+                (ViewGroup) findViewById(R.id.custom_toast_layout_id));
+        TextView text = (TextView) layout.findViewById(R.id.text);
+        text.setText(message);
+        // Toast...
+        Toast toast = new Toast(getApplicationContext());
+        toast.setGravity(Gravity.BOTTOM, 0,60);
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(layout);
         toast.show();
+
+//        Context context = getApplicationContext();
+//        Toast toast = Toast.makeText(context, message, Toast.LENGTH_LONG);
+//        TextView v = (TextView) toast.getView().findViewById(android.R.id.message);
+//        v.setTextColor(Color.RED);
+//
+//        toast.show();
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        global_preferences = getSharedPreferences("global_preferences", MODE_PRIVATE);
+        global_preferences.edit()
+                .putBoolean("manual_mode_enabled", manual_mode_enabled)
+                .putInt("single_dosage_amount", single_dose_amount)
+                .apply();
     }
 
 

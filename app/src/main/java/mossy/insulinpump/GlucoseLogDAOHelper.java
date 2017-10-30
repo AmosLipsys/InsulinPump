@@ -5,7 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 class GlucoseLogDAOHelper extends SQLiteOpenHelper {
-    private static final int VERSION = 7;
+    private static final int VERSION = 69;
     private final Context context;
 
     GlucoseLogDAOHelper(Context context) {

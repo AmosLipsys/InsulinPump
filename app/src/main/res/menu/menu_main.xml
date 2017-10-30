@@ -11,7 +11,7 @@
         android:id="@+id/action_manual_mode"
         android:orderInCategory="100"
         android:title="@string/action_manual_mode"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
     <item
         android:id="@+id/action_dosage"
         android:orderInCategory="100"

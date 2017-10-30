@@ -1,20 +1,23 @@
 package mossy.insulinpump;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.SeekBar;
 import android.widget.Switch;
 
 public class Settings extends AppCompatActivity {
     Switch vibrate_on_alert_switch;
     Switch vibrate_on_notification_switch;
-
+    SeekBar volume_bar;
+    private SharedPreferences global_preferences;
+    private boolean vibrate_on_alert,vibrate_on_notification;
+    int volume;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,17 +27,32 @@ public class Settings extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        global_preferences = getSharedPreferences("global_preferences", MODE_PRIVATE);
+        vibrate_on_alert = global_preferences.getBoolean("vibrate_on_alert", true);
+        volume = global_preferences.getInt("volume", 0);
+        vibrate_on_notification = global_preferences.getBoolean("vibrate_on_notification", true);
         vibrate_on_alert_switch = (Switch) findViewById(R.id.vibrate_on_alert_switch);
-        vibrate_on_alert_switch.setOnClickListener(new View.OnClickListener(){
+        vibrate_on_notification_switch = (Switch) findViewById(R.id.vibrate_on_notification_switch);
+        volume_bar = (SeekBar) findViewById(R.id.volume_seek_bar);
 
-        @Override
-        public void onClick(View view){
 
-            vibrate_on_alert_switch.setTextOn("On");
-            vibrate_on_alert_switch.setTextOff("Off");
+        vibrate_on_alert_switch.setChecked(vibrate_on_alert);
+        vibrate_on_notification_switch.setChecked(vibrate_on_notification);
 
-        }
-    });
+
+        volume_bar.setProgress(volume);
+
+        vibrate_on_alert_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                vibrate_on_alert = isChecked;
+            }
+        });
+        vibrate_on_notification_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                vibrate_on_alert = isChecked;
+            }
+        });
+
     }
 
     @Override
@@ -67,6 +85,18 @@ public class Settings extends AppCompatActivity {
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        global_preferences = getSharedPreferences("global_preferences", MODE_PRIVATE);
+        volume = volume_bar.getProgress();
+        global_preferences.edit()
+                .putBoolean("vibrate_on_alert", vibrate_on_alert)
+                .putBoolean("vibrate_on_notification", vibrate_on_notification)
+                .putInt("volume", volume)
+                .apply();
     }
 
 
